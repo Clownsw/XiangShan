@@ -4,7 +4,7 @@ import chisel3._
 import org.chipsalliance.cde.config.Parameters
 import utility._
 import xiangshan._
-import xiangshan.backend.fu.NewCSR.{CSRPermitModule, NewCSR}
+import xiangshan.backend.fu.NewCSR.{CSRPermitModule, NewCSR, VtypeBundle}
 import xiangshan.backend.fu.util._
 import xiangshan.backend.fu.{FuConfig, FuncUnit}
 import device._
@@ -147,20 +147,20 @@ class CSR(cfg: FuConfig)(implicit p: Parameters) extends FuncUnit(cfg)
   io.out.bits.res.data := csrMod.io.out.rData
   connect0LatencyCtrlSingal
 
-  csrOut.isPerfCnt := DontCare
-  csrOut.fpu.frm := csrMod.io.out.frm
-  csrOut.vpu.vstart := DontCare
-  csrOut.vpu.vxsat := DontCare
-  csrOut.vpu.vxrm := csrMod.io.out.vxrm
-  csrOut.vpu.vcsr := DontCare
-  csrOut.vpu.vl := DontCare
-  csrOut.vpu.vtype := DontCare
-  csrOut.vpu.vlenb := DontCare
-  csrOut.vpu.vill := DontCare
-  csrOut.vpu.vma := DontCare
-  csrOut.vpu.vta := DontCare
-  csrOut.vpu.vsew := DontCare
-  csrOut.vpu.vlmul := DontCare
+  csrOut.isPerfCnt  := csrMod.io.out.isPerfCnt && valid && func =/= CSROpType.jmp
+  csrOut.fpu.frm    := csrMod.io.out.frm
+  csrOut.vpu.vstart := csrMod.io.out.vstart
+  csrOut.vpu.vxsat  := csrMod.io.out.vxsat
+  csrOut.vpu.vxrm   := csrMod.io.out.vxrm
+  csrOut.vpu.vcsr   := csrMod.io.out.vcsr
+  csrOut.vpu.vl     := csrMod.io.out.vl
+  csrOut.vpu.vtype  := csrMod.io.out.vtype
+  csrOut.vpu.vlenb  := csrMod.io.out.vlenb
+  csrOut.vpu.vill   := csrMod.io.out.vtype.asTypeOf(new VtypeBundle).VILL
+  csrOut.vpu.vma    := csrMod.io.out.vtype.asTypeOf(new VtypeBundle).VMA
+  csrOut.vpu.vta    := csrMod.io.out.vtype.asTypeOf(new VtypeBundle).VTA
+  csrOut.vpu.vsew   := csrMod.io.out.vtype.asTypeOf(new VtypeBundle).VSEW
+  csrOut.vpu.vlmul  := csrMod.io.out.vtype.asTypeOf(new VtypeBundle).VLMUL
 
   csrOut.isXRet := DontCare
 

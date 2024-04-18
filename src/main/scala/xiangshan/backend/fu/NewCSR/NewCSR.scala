@@ -91,7 +91,14 @@ class NewCSR extends Module
       val frm = Frm()
       // vec
       val vstart = UInt(XLEN.W)
+      val vxsat = Vxsat()
       val vxrm = Vxrm()
+      val vcsr = UInt(XLEN.W)
+      val vl = UInt(XLEN.W)
+      val vtype = UInt(XLEN.W)
+      val vlenb = UInt(XLEN.W)
+      // perf
+      val isPerfCnt = Bool()
     })
   })
 
@@ -317,6 +324,12 @@ class NewCSR extends Module
     }
   )
 
+  // perf
+  val addrInPerfCnt = (addr >= mcycle.addr.U) && (addr <= mhpmcounters.last.addr.U) ||
+    (addr >= mcountinhibit.addr.U) && (addr <= mhpmevents.last.addr.U) ||
+    addr === mip.addr.U
+    // (addr >= cycle.addr.U) && (addr <= hpmcounters.last.addr.U) // User
+
   private val rdata = Mux1H(csrRwMap.map { case (id, (_, rBundle)) =>
     (raddr === id.U) -> rBundle.asUInt
   })
@@ -343,8 +356,14 @@ class NewCSR extends Module
   io.out.EX_II := false.B
   io.out.flushPipe := false.B
   io.out.frm := fcsr.frm
-  io.out.vstart := 0.U
-  io.out.vxrm := 0.U
+  io.out.vstart := vstart.rdata.asUInt
+  io.out.vxsat := vcsr.vxsat
+  io.out.vxrm := vcsr.vxrm
+  io.out.vcsr := vcsr.rdata.asUInt
+  io.out.vl := vl.rdata.asUInt
+  io.out.vtype := vtype.rdata.asUInt
+  io.out.vlenb := vlenb.rdata.asUInt
+  io.out.isPerfCnt := addrInPerfCnt
 
   // Todo: record the last address to avoid xireg is different with xiselect
   toAIA.addr.valid := isCSRAccess && Seq(miselect, siselect, vsiselect).map(
